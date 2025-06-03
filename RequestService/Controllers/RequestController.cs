@@ -20,9 +20,13 @@ namespace RequestService.Controllers
         public async Task<IActionResult> MakeRequest(int id)
         {
             var client = new HttpClient();
-            //var response = await client.GetAsync($"https://localhost:7297/api/response/{id}");
+            //var response = await client.GetAsync($"https://localhost:7297/api/response/{id}");        // run once - no polly
 
-            var response = await clientPolicy.ImmediateHttpRetry.ExecuteAsync(() => client.GetAsync($"https://localhost:7297/api/response/{id}"));
+            // 1 using polly, if failed, retry 5 times immediately 
+            //var response = await clientPolicy.ImmediateHttpRetry.ExecuteAsync(() => client.GetAsync($"https://localhost:7297/api/response/{id}"));
+
+            // 2 using polly, if failed, retry 5 times, 3 seconds waits in between 
+            var response = await clientPolicy.LinearHttpRetry.ExecuteAsync(() => client.GetAsync($"https://localhost:7297/api/response/{id}"));
 
             if (response.IsSuccessStatusCode) 
             {
