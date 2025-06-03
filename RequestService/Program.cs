@@ -5,6 +5,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 // POLLY fault retry policies 
+builder.Services.AddHttpClient();                       // we need HTTP client factory 
 builder.Services.AddSingleton<ClientPolicy>();
 
 builder.Services.AddControllers();
