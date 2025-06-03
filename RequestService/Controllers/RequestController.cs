@@ -43,13 +43,13 @@ namespace RequestService.Controllers
         //}
 
 
-
+        // using HTTP client factory to create HTTP Client
         // GET api/response/100
         [Route("{id}")]
         [HttpGet]
         public async Task<IActionResult> MakeRequest(int id)
         {
-            var client = clientFactory.CreateClient();
+            var client = clientFactory.CreateClient("PollyPolicyCleint");
             //var response = await client.GetAsync($"https://localhost:7297/api/response/{id}");        // run once - no polly
 
             // 1 using polly, if failed, retry 5 times immediately 
