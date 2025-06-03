@@ -9,6 +9,7 @@ namespace ResponseAPI.Controllers
         // GET api/response/100
         // if you pass 100 or more you have more chance of getting Ok response
         // if you pass something like 1 you have high chance of getting 500 internal server error/ failure
+        // 50 - 50% chance of OK / Failure
         [Route("{id}")]
         [HttpGet]
         public ActionResult GetResponse(int id)
