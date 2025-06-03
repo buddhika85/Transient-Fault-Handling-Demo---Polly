@@ -26,7 +26,10 @@ namespace RequestService.Controllers
             //var response = await clientPolicy.ImmediateHttpRetry.ExecuteAsync(() => client.GetAsync($"https://localhost:7297/api/response/{id}"));
 
             // 2 using polly, if failed, retry 5 times, 3 seconds waits in between 
-            var response = await clientPolicy.LinearHttpRetry.ExecuteAsync(() => client.GetAsync($"https://localhost:7297/api/response/{id}"));
+            //var response = await clientPolicy.LinearHttpRetry.ExecuteAsync(() => client.GetAsync($"https://localhost:7297/api/response/{id}"));
+
+            // 3 using polly, if failed, retry 5 times, 3 seconds waits in between 
+            var response = await clientPolicy.ExponetialHttpRetry.ExecuteAsync(() => client.GetAsync($"https://localhost:7297/api/response/{id}"));
 
             if (response.IsSuccessStatusCode) 
             {

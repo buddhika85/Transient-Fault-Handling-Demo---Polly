@@ -3,6 +3,8 @@ using RequestService.Policies;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+
+// POLLY fault retry policies 
 builder.Services.AddSingleton<ClientPolicy>();
 
 builder.Services.AddControllers();
