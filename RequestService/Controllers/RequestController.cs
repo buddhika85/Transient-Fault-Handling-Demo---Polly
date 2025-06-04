@@ -2,6 +2,8 @@
 using Polly.Timeout;
 using Polly;
 using RequestService.Policies;
+using Polly.Bulkhead;
+using System.Net;
 
 namespace RequestService.Controllers
 {
@@ -121,6 +123,58 @@ namespace RequestService.Controllers
 
             Console.WriteLine("----> ResponseService returned FAILURE");
             return StatusCode(StatusCodes.Status500InternalServerError, id);
+        }
+
+
+        
+
+        [Route("MakeRequestBulkhead/{id}")]
+        [HttpGet]
+        public async Task<IActionResult> MakeRequestBulkhead(int id)
+        {
+            var client = new HttpClient();
+
+            var bulkheadPolicy = Policy.BulkheadAsync<HttpResponseMessage>(maxParallelization: 5, maxQueuingActions: 10);
+
+            try
+            {
+                var response = await bulkheadPolicy.ExecuteAsync(() => client.GetAsync($"https://localhost:7297/api/response/{id}"));
+
+                if (response.IsSuccessStatusCode)
+                {
+                    Console.WriteLine("----> ResponseService returned SUCCESS");
+                    return StatusCode(StatusCodes.Status200OK, id);
+                }
+            }
+            catch (BulkheadRejectedException)
+            {
+                Console.WriteLine("----> Request rejected due to bulkhead limit!");
+                return StatusCode(StatusCodes.Status429TooManyRequests, id);
+            }
+
+            Console.WriteLine("----> ResponseService returned FAILURE");
+            return StatusCode(StatusCodes.Status500InternalServerError, id);
+        }
+
+
+     
+
+        [Route("MakeRequestFallback/{id}")]
+        [HttpGet]
+        public async Task<IActionResult> MakeRequestFallback(int id)
+        {
+            var client = new HttpClient();
+
+            var fallbackPolicy = Policy.HandleResult<HttpResponseMessage>(res => !res.IsSuccessStatusCode)
+ .FallbackAsync(new HttpResponseMessage(HttpStatusCode.OK)
+ {
+     Content = new StringContent("Fallback response: Service unavailable, please try again later.")
+ });
+
+            var response = await fallbackPolicy.ExecuteAsync(() => client.GetAsync($"https://localhost:7297/api/response/{id}"));
+
+            Console.WriteLine("----> ResponseService returned: " + await response.Content.ReadAsStringAsync());
+            return StatusCode((int)response.StatusCode, await response.Content.ReadAsStringAsync());
         }
     }
 }
