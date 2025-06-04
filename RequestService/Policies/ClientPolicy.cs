@@ -3,6 +3,7 @@ using Polly.Retry;
 using System.Diagnostics.Metrics;
 using System;
 using Polly.CircuitBreaker;
+using Polly.Timeout;
 
 namespace RequestService.Policies
 {
@@ -15,6 +16,8 @@ namespace RequestService.Policies
 
 
         public AsyncPolicy<HttpResponseMessage> CircuiteBreakerHttpPolicy { get; }
+
+        public AsyncTimeoutPolicy<HttpResponseMessage> TimeOutPolicy { get; }
 
         public ClientPolicy()
         {
@@ -51,6 +54,11 @@ namespace RequestService.Policies
 
 
             #endregion region
+
+
+            // Define a timeout policy that cancels requests if they exceed 5 seconds
+            TimeOutPolicy = Policy.TimeoutAsync<HttpResponseMessage>(TimeSpan.FromSeconds(5));
+
         }
     }
 }

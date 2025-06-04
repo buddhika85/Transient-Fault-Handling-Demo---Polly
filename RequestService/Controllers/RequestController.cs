@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Polly.Timeout;
+using Polly;
 using RequestService.Policies;
 
 namespace RequestService.Controllers
@@ -89,6 +91,34 @@ namespace RequestService.Controllers
                 Console.WriteLine("----> ResponseService returned SUCCESS");
                 return StatusCode(StatusCodes.Status200OK, id);
             }
+            Console.WriteLine("----> ResponseService returned FAILURE");
+            return StatusCode(StatusCodes.Status500InternalServerError, id);
+        }
+
+
+        // Apply the timeout policy when making an HTTP request
+        [Route("MakeRequestWithTimeout/{id}")]
+        [HttpGet]
+        public async Task<IActionResult> MakeRequestWithTimeout(int id)
+        {
+            var client = new HttpClient();
+
+            try
+            {
+                var response = await clientPolicy.TimeOutPolicy.ExecuteAsync(() => client.GetAsync($"https://localhost:7297/api/response/{id}"));
+
+                if (response.IsSuccessStatusCode)
+                {
+                    Console.WriteLine("----> ResponseService returned SUCCESS");
+                    return StatusCode(StatusCodes.Status200OK, id);
+                }
+            }
+            catch (TimeoutRejectedException)
+            {
+                Console.WriteLine("----> Request timed out!");
+                return StatusCode(StatusCodes.Status408RequestTimeout, id);
+            }
+
             Console.WriteLine("----> ResponseService returned FAILURE");
             return StatusCode(StatusCodes.Status500InternalServerError, id);
         }
